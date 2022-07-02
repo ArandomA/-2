@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# @Author  : Liyufei
-# @Time    : 2022/7/2 3:00
+# @Author  : 李宇飞
+# @Time    : 2022/6/25 19:53
 # @File    : 测试2.py
 # @Software: PyCharm
 import os
@@ -12,7 +12,8 @@ from threadpool import ThreadPool, makeRequests
 from selenium import webdriver
 
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                  'Chrome/103.0.5060.53 Safari/537.36 Edg/103.0.1264.37 '
 }
 index_len = 0
 novel_name = 'Novel'
@@ -29,11 +30,12 @@ def get_index(url):
     novel_name = soup.find('h1').string
     index_list = []
     for a_tag, index in zip(href_list, num_list):
-        index_list.append('{}-*-https://www.xbiquge.la{}'.format(index, a_tag.get('href')))
+        index_list.append('{}-*-https://www.xbiquge.la{}'.format(index, a_tag.get('href')))  # 获取该小说每个章节的URL
     print(index_list)
     return index_list
 
 
+# 进行小说缓存
 def get_content(info):
     url = info.split('-*-')[1]
     num = info.split('-*-')[0]
@@ -41,11 +43,12 @@ def get_content(info):
     resp.encoding = 'utf-8'
     soup = BeautifulSoup(resp.text, 'html5lib')
     title = soup.find('h1').string
-    content = soup.find('div', id='content').get_text().replace('\n\n', '\n').split('亲,点击进去')[0]
+    content = soup.find('div', id='content').get_text().replace('\n\n', '\n').split('亲,点击进去')[0]  # 获取小说内容并去除广告和空行
     with open('./小说/缓存/{}.txt'.format(num), 'w', encoding='utf-8')as f:
         f.write(title + '\n' + content)
 
 
+# 将缓存的章节合并
 def create_text():
     file = open('./小说/{}.txt'.format(novel_name), 'a', encoding='utf-8')
     for num in range(1, index_len + 1):
@@ -57,10 +60,11 @@ def create_text():
 
 
 if __name__ == '__main__':
+    # 模拟浏览器去搜索
     the_name = input("请输入你想下载的书名：")
-    driver = webdriver.Edge(r'.\edgedriver_win64\msedgedriver.exe')
-    driver.get('https://www.xbiquge.la/')
-    driver.find_element_by_id('wd').send_keys(the_name)
+    driver = webdriver.Edge(r'.\edgedriver_win64\msedgedriver.exe')  # Edge浏览器驱动
+    driver.get('https://www.xbiquge.la/')  # 笔趣阁网址
+    driver.find_element_by_id('wd').send_keys(the_name)  # 按照输入的书名搜索
     driver.find_element_by_id('sss').click()
     driver.find_element_by_partial_link_text(the_name).click()
     driver.switch_to.window(driver.window_handles[-1])  # 切换到最后一个页面
